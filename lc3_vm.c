@@ -85,7 +85,8 @@ enum {
 int read_image(const char* image_path);
 uint16_t sign_extend(uint16_t x, int num_bits);
 void update_flags(uint16_t r);
-
+uint16_t mem_read(uint16_t address);
+void mem_write(uint16_t address, uint16_t val);
 
 int main(int argc, const char*argv[]){
 
@@ -161,6 +162,12 @@ int main(int argc, const char*argv[]){
             }
                 break;
             case ST:
+            {
+                uint16_t r0 = (instr >> 9) & 0x7;
+                 
+                uint16_t offset = sign_extend(instr & 0b111111,9);
+                mem_write(reg[R_PC]+offset,reg[r0]);
+            }
                 break;
             case JSR:
             {
@@ -203,6 +210,12 @@ int main(int argc, const char*argv[]){
             }
                 break;
             case STR:
+            {
+                    uint16_t r0 = (instr >> 9) & 0x7;
+                    uint16_t r1 = (instr >> 6) & 0x7;
+                    uint16_t offset = sign_extend(instr & 0x3F, 6);
+                    mem_write(reg[r1] + offset, reg[r0]);
+            }
                 break;
             case RTI:
                 break;
@@ -229,6 +242,16 @@ int main(int argc, const char*argv[]){
                 }
                 break;
             case STI:
+            {
+                    // destination register (DR)
+                    uint16_t r0 = (instr >> 9) & 0x7;
+
+                    //get PCoffset9 and sign extend it
+                    uint16_t pc_offset = sign_extend(instr& 0b000000111111111,9);
+
+                    mem_write(mem_read(reg[R_PC]+pc_offset),reg[r0]);
+                    
+            }
                 break;
             case JMP:
             {
@@ -238,10 +261,17 @@ int main(int argc, const char*argv[]){
             case RES:
                 break;
             case LEA:
+            {
+                uint16_t r0 = (instr >> 9) & 0x7;
+                uint16_t offset = sign_extend((instr & 0x1FF),9);
+                reg[r0] = reg[R_PC] + offset;
+                update_flags(r0); 
+            }
                 break;
             case TRAP:
                 break;
             default:
+                abort();
                 break;
         }
     }
