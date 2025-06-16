@@ -82,6 +82,20 @@ enum {
 
 };
 
+
+enum {
+
+    // trap routines
+
+    TRAP_GETC = 0x20,   // get character from keyboard, not echoed onto the terminal , 0b00100000
+    TRAP_OUT = 0x21,    // output a character  0b00100001
+    TRAP_PUTS = 0x22,   // output a word string     0b00100010
+    TRAP_IN = 0x23,     // get character from keyboard, echoed onto the terminal        0b00100011
+    TRAP_PUTSP = 0x24,  // output a byte program    0b00100100
+    TRAP_HALT = 0x25    // halt the program     0b00100101
+
+};
+
 int read_image(const char* image_path);
 uint16_t sign_extend(uint16_t x, int num_bits);
 void update_flags(uint16_t r);
@@ -269,6 +283,77 @@ int main(int argc, const char*argv[]){
             }
                 break;
             case TRAP:
+                reg[R_R7] = reg[R_PC];
+                
+                switch (instr & 0xFF)
+                {
+                    case TRAP_GETC:
+                        // reads a single ASCII char
+                        reg[R_R0] = (uint16_t)getchar();
+
+                        //Reads a single character from input without echo
+                        //Stores it in R0
+                        //Updates condition flags based on the character's value
+
+                        update_flags(R_R0);
+                        break;
+                    case TRAP_OUT:
+                        putc((char)reg[R_R0], stdout);
+                        fflush(stdout);
+                        /*
+                        Outputs the character in R0 to the screen.
+                        fflush(stdout) ensures it is shown immediately.
+                        */
+                        break;
+                    case TRAP_PUTS:
+                        {
+                            // one char per 16 bit word
+                            uint16_t* c = memory + reg[R_R0]; // memory is a pointer to the first element of the memory array
+                            while (*c)
+                            {
+                                putc((char)*c, stdout);
+                                //Casts the 16-bit word to an 8-bit char, which is what putc() expects
+                                //Sends it to stdout (standard output)
+                                //This prints one character to the screen
+
+
+                                c++; //Move to the next word in memory, because c is a uint16_t*, this increments by 2 bytes, advancing to the next character
+                            }
+                            fflush(stdout); // make sure that all buffered output is immediately displayed to the screen
+                        }
+                        break;
+                    case TRAP_IN:
+                        {
+                            printf("Enter a character: "); //prompt user to enter a character
+                            char c = getchar();
+                            putc(c, stdout);    //echoes it back
+                            fflush(stdout);
+                            reg[R_R0] = (uint16_t)c;        // stores it in R0
+                            update_flags(R_R0);         // updates flags
+                        }
+                        break;
+                    case TRAP_PUTSP:
+                        {
+                            uint16_t* c = memory + reg[R_R0];
+                            while (*c)
+                            {
+                                char char1 = (*c) & 0xFF;
+                                putc(char1, stdout);
+                                char char2 = (*c) >> 8;
+                                if (char2) putc(char2, stdout);
+                                c++;
+                            }
+                            fflush(stdout);
+                        }
+                        break;
+                    case TRAP_HALT:
+                        puts("HALT");
+                        fflush(stdout);
+                        running = 0;        // stops the execution loop by setting running to 0
+                        break;
+
+                }
+
                 break;
             default:
                 abort();
