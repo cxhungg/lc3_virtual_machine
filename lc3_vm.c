@@ -101,6 +101,8 @@ uint16_t sign_extend(uint16_t x, int num_bits);
 void update_flags(uint16_t r);
 uint16_t mem_read(uint16_t address);
 void mem_write(uint16_t address, uint16_t val);
+uint16_t swap16(uint16_t x);
+void read_image_file(FILE* file);
 
 int main(int argc, const char*argv[]){
 
@@ -334,14 +336,33 @@ int main(int argc, const char*argv[]){
                         break;
                     case TRAP_PUTSP:
                         {
-                            uint16_t* c = memory + reg[R_R0];
+
+                            /*
+                            The TRAP_PUTSP routine in the LC-3 emulator is used to print strings stored in memory with two characters per word, also known as packed strings. This is more space-efficient than TRAP_PUTS, which uses one character per 16-bit word.
+                            */
+
+                            //for example
+
+                            /*
+                            memory[0x3000] = 0x6548; // 'H' (0x48), 'e' (0x65)
+                            memory[0x3001] = 0x6C6C; // 'l', 'l'
+                            memory[0x3002] = 0x006F; // 'o', '\0'
+                            reg[R_R0] = 0x3000;
+
+                            */
+
+                            //storing characters this way is more space efficient 
+
+                            uint16_t* c = memory + reg[R_R0];  // c points to the first word of the packed string 
                             while (*c)
                             {
-                                char char1 = (*c) & 0xFF;
-                                putc(char1, stdout);
-                                char char2 = (*c) >> 8;
-                                if (char2) putc(char2, stdout);
-                                c++;
+                                char char1 = (*c) & 0xFF;   //Extracts the low-order byte (bits 0–7) from the 16-bit word, the first character stored in the word
+                                putc(char1, stdout);        //Prints the first character to the screen
+                                char char2 = (*c) >> 8;     //Extracts the high-order byte (bits 8–15) from the word, this is the second character
+                                if (char2){
+                                    putc(char2, stdout);    //only print the second character if it is non-zero
+                                }    
+                                c++;    //Move to the next word in memory
                             }
                             fflush(stdout);
                         }
@@ -384,5 +405,35 @@ void update_flags(uint16_t r){
     } else {
         reg[R_COND] = FL_POS;
     }
+
+}
+
+//LC-3 programs are big-endian, but most modern computers are little-endian. So, we need to swap each uint16 that is loaded
+uint16_t swap16(uint16_t x){
+    return (x << 8) | (x >> 8);     //this reverses the byte order of a 16-bit value
+
+    /*
+    
+    x << 8: Shifts the lower byte to the upper byte position
+
+    0x1234 << 8 = 0x3400
+
+    x >> 8: Shifts the upper byte to the lower byte position
+
+    0x1234 >> 8 = 0x0012
+
+    Combine them with bitwise OR 
+
+    0x3400 | 0x0012 = 0x3412
+    
+    */
+
+
+}
+
+void read_image_file(FILE* file){
+    //the code for reading an LC-3 program into memory
+
+
 
 }
