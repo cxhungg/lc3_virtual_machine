@@ -434,6 +434,20 @@ uint16_t swap16(uint16_t x){
 void read_image_file(FILE* file){
     //the code for reading an LC-3 program into memory
 
+    uint16_t origin;
+    fread(&origin, sizeof(origin), 1, file);
+    origin = swap16(origin);
+
+    uint16_t max_read = MAX_MEMORY - origin;
+    uint16_t* p = memory + origin;
+    size_t read = fread(p, sizeof(uint16_t), max_read, file);
+
+    // swap to little endian
+    while (read-- > 0)
+    {
+        *p = swap16(*p);
+        ++p;
+    }
 
 
 }
