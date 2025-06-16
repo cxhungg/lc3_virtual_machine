@@ -435,12 +435,13 @@ void read_image_file(FILE* file){
     //the code for reading an LC-3 program into memory
 
     uint16_t origin;
-    fread(&origin, sizeof(origin), 1, file);
+    fread(&origin, sizeof(origin), 1, file);  //reads the first 16 bits of the file into origin
     origin = swap16(origin);
 
-    uint16_t max_read = MAX_MEMORY - origin;
-    uint16_t* p = memory + origin;
-    size_t read = fread(p, sizeof(uint16_t), max_read, file);
+    uint16_t max_read = MAX_MEMORY - origin;  //computes how many words we can safely load without going out of bounds.
+
+    uint16_t* p = memory + origin;  //p now points to the memory address where the program should begin loading e.g., memory[0x3000]
+    size_t read = fread(p, sizeof(uint16_t), max_read, file); //reads up to max_read 16-bit words from the file into memory, starting at p
 
     // swap to little endian
     while (read-- > 0)
