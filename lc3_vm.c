@@ -96,6 +96,14 @@ enum {
 
 };
 
+//memory mapped registers----------------------------------------------------------------------------------
+
+enum
+{
+    MR_KBSR = 0xFE00, // keyboard status
+    MR_KBDR = 0xFE02  // keyboard data 
+};
+
 int read_image(const char* image_path);
 uint16_t sign_extend(uint16_t x, int num_bits);
 void update_flags(uint16_t r);
@@ -462,4 +470,28 @@ int read_image(const char* image_path){
     read_image_file(file);
     fclose(file);
     return 1;
+}
+
+
+
+void mem_write(uint16_t address, uint16_t val)
+{
+    memory[address] = val;
+}
+
+uint16_t mem_read(uint16_t address)
+{
+    if (address == MR_KBSR)
+    {
+        if (check_key())
+        {
+            memory[MR_KBSR] = (1 << 15);
+            memory[MR_KBDR] = getchar();
+        }
+        else
+        {
+            memory[MR_KBSR] = 0;
+        }
+    }
+    return memory[address];
 }
