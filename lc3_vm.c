@@ -104,6 +104,45 @@ enum
     MR_KBDR = 0xFE02  // keyboard data 
 };
 
+
+
+
+
+HANDLE hStdin = INVALID_HANDLE_VALUE;
+DWORD fdwMode, fdwOldMode;
+
+void disable_input_buffering()
+{
+    hStdin = GetStdHandle(STD_INPUT_HANDLE);
+    GetConsoleMode(hStdin, &fdwOldMode); /* save old mode */
+    fdwMode = fdwOldMode
+            ^ ENABLE_ECHO_INPUT  /* no input echo */
+            ^ ENABLE_LINE_INPUT; /* return when one or
+                                    more characters are available */
+    SetConsoleMode(hStdin, fdwMode); /* set new mode */
+    FlushConsoleInputBuffer(hStdin); /* clear buffer */
+}
+
+void restore_input_buffering()
+{
+    SetConsoleMode(hStdin, fdwOldMode);
+}
+
+uint16_t check_key()
+{
+    return WaitForSingleObject(hStdin, 1000) == WAIT_OBJECT_0 && _kbhit();
+}
+
+
+
+void handle_interrupt(int signal)
+{
+    restore_input_buffering();
+    printf("\n");
+    exit(-2);
+}
+
+
 int read_image(const char* image_path);
 uint16_t sign_extend(uint16_t x, int num_bits);
 void update_flags(uint16_t r);
@@ -126,7 +165,8 @@ int main(int argc, const char*argv[]){
             exit(1);
         }
     }
-
+    signal(SIGINT, handle_interrupt);
+    disable_input_buffering();
 
     // (setup)
 
@@ -389,6 +429,7 @@ int main(int argc, const char*argv[]){
                 break;
         }
     }
+    restore_input_buffering();
 }
             
 
