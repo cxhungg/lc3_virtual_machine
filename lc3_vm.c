@@ -32,22 +32,22 @@ uint16_t reg[R_COUNT];  // creating an array called reg, that has 11 locations, 
 
 enum {
 
-    BR = 0,
-    ADD,
-    LD,
-    ST,
-    JSR,
-    AND,
-    LDR,
-    STR,
-    RTI,
-    NOT,
-    LDI,
-    STI,
-    JMP,
-    RES,
-    LEA,
-    TRAP
+    BR = 0, /* branch */
+    ADD,    /* add  */
+    LD,     /* load */
+    ST,     /* store */
+    JSR,    /* jump register */
+    AND,    /* bitwise and */
+    LDR,    /* load register */
+    STR,    /* store register */
+    RTI,    /* unused */
+    NOT,    /* bitwise not */
+    LDI,    /* load indirect */
+    STI,    /* store indirect */
+    JMP,    /* jump */
+    RES,    /* reserved (unused) */
+    LEA,    /* load effective address */
+    TRAP    /* execute trap */
 
 };
 
@@ -115,12 +115,12 @@ void disable_input_buffering()
 {
     hStdin = GetStdHandle(STD_INPUT_HANDLE);
     GetConsoleMode(hStdin, &fdwOldMode); /* save old mode */
-    fdwMode = fdwOldMode;
-    fdwMode &= ~(ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT);
-    // fdwMode = fdwOldMode
-    //         ^ ENABLE_ECHO_INPUT  /* no input echo */
-    //         ^ ENABLE_LINE_INPUT; /* return when one or
-    //                                 more characters are available */
+    // fdwMode = fdwOldMode;
+    // fdwMode &= ~(ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT);
+    fdwMode = fdwOldMode
+            ^ ENABLE_ECHO_INPUT  /* no input echo */
+            ^ ENABLE_LINE_INPUT; /* return when one or
+                                    more characters are available */
     SetConsoleMode(hStdin, fdwMode); /* set new mode */
     FlushConsoleInputBuffer(hStdin); /* clear buffer */
 }
@@ -233,7 +233,7 @@ int main(int argc, const char*argv[]){
             {
                 uint16_t r0 = (instr >> 9) & 0x7;
                  
-                uint16_t offset = sign_extend(instr & 0b111111,9);
+                uint16_t offset = sign_extend(instr & 0b111111111,9);
                 mem_write(reg[R_PC]+offset,reg[r0]);
             }
                 break;
