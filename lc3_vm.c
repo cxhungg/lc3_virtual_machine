@@ -199,7 +199,8 @@ int main(int argc, const char*argv[]){
             case ADD:
             {
                 // this is the destination register (DR)
-                uint16_t r0 = (instr >> 9) & 0b0111;  // we and this with 0111 to remove the leading 1 since the opcode binary for add is 0001. This will result in just the number of the register
+                uint16_t r0 = (instr >> 9) & 0b0111;  // we and this with 0111 to remove the leading 1 since the opcode binary for add is 0001. This will result in just the 
+                //number of the register
                 
                 // this is the first operand (SR1)
                 uint16_t r1 = (instr >> 6) &0b111;
@@ -436,7 +437,6 @@ int main(int argc, const char*argv[]){
     }
     restore_input_buffering();
 }
-            
 
 uint16_t sign_extend(uint16_t x, int num_bits){
 
