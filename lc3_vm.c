@@ -199,23 +199,25 @@ int main(int argc, const char*argv[]){
             case ADD:
             {
                 // this is the destination register (DR)
-                uint16_t r0 = instr >> 9 & 0b0111;  // we and this with 0111 to remove the leading 1 since the opcode binary for add is 0001. This will result in just the number of the register
+                uint16_t r0 = (instr >> 9) & 0b0111;  // we and this with 0111 to remove the leading 1 since the opcode binary for add is 0001. This will result in just the number of the register
                 
                 // this is the first operand (SR1)
-                uint16_t r1 = instr >> 6 &0b111;
+                uint16_t r1 = (instr >> 6) &0b111;
 
                 // to check if its add immediate or just add between registers
-                uint16_t imm_flag = instr >> 5 & 0b1;
+                uint16_t imm_flag = (instr >> 5) & 0b1;
 
-                uint16_t r2;
+                
                 //this is the second operand (SR2)
                 if (imm_flag) {
-                    r2 = sign_extend(instr & 0b11111,5);    
+                    uint16_t imm5 = sign_extend(instr & 0b11111,5); 
+                    reg[r0] = reg[r1] + imm5;   
                 } else {
-                    r2 = instr & 0b111;
+                    uint16_t r2 = instr & 0b111;
+                    reg[r0] = reg[r1] + reg[r2];
                 }
                 
-                reg[r0] = reg[r1] + reg[r2];
+                
                 update_flags(r0);
             }
                 break;
@@ -238,6 +240,7 @@ int main(int argc, const char*argv[]){
             case JSR:
             {
                 uint16_t flag = (instr >> 11) & 0b1;
+                reg[R_R7] = reg[R_PC];
                 if (flag){
                     reg[R_PC] += sign_extend((instr & 0x7FF),11);
                 }
@@ -250,7 +253,7 @@ int main(int argc, const char*argv[]){
             case AND:
             {
                 //destination register (DR)
-                uint16_t r0 = instr >> 9 & 0x7;
+                uint16_t r0 = (instr >> 9) & 0x7;
                 uint16_t imm_flag = (instr >> 5) & 0b1;
                 uint16_t r1 = (instr >> 6) & 0x7;
                 uint16_t result;
