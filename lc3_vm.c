@@ -115,10 +115,12 @@ void disable_input_buffering()
 {
     hStdin = GetStdHandle(STD_INPUT_HANDLE);
     GetConsoleMode(hStdin, &fdwOldMode); /* save old mode */
-    fdwMode = fdwOldMode
-            ^ ENABLE_ECHO_INPUT  /* no input echo */
-            ^ ENABLE_LINE_INPUT; /* return when one or
-                                    more characters are available */
+    fdwMode = fdwOldMode;
+    fdwMode &= ~(ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT);
+    // fdwMode = fdwOldMode
+    //         ^ ENABLE_ECHO_INPUT  /* no input echo */
+    //         ^ ENABLE_LINE_INPUT; /* return when one or
+    //                                 more characters are available */
     SetConsoleMode(hStdin, fdwMode); /* set new mode */
     FlushConsoleInputBuffer(hStdin); /* clear buffer */
 }
@@ -208,7 +210,7 @@ int main(int argc, const char*argv[]){
                 uint16_t r2;
                 //this is the second operand (SR2)
                 if (imm_flag) {
-                    r2 = instr & 0b11111;    
+                    r2 = sign_extend(instr & 0b11111,5);    
                 } else {
                     r2 = instr & 0b111;
                 }
