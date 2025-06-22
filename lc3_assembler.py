@@ -26,9 +26,6 @@ def parse_reg(reg):
 
 
 
-
-
-
 def parse_lc3_literal(s):
     s = s.strip()
     if s.startswith('x') or s.startswith('X'):
