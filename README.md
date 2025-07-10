@@ -79,7 +79,7 @@ The debugger provides a graphical interface where you can:
 - View registers and memory in real-time
 - Interact with console I/O
 
-![LC-3 Debugger Interface](.\image\debugger.jpg)
+![LC-3 Debugger Interface](./image/debugger.jpg)
 
 ## Sample Programs
 
